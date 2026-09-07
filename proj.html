@@ -7493,9 +7493,9 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Introduction">Introduction<a class="anchor-link" href="#Introduction">¶</a></h2><p>Hospital readmission rates are often utilized as a measure of care quality and patient outcomes. The Center for Medicare and Medicaid services (CMS) has penalized hospitals for excess readmission rates since 2012 under the Hospital Readmissions Reduction Program <a href="https://www.cms.gov/medicare/quality/value-based-programs/hospital-readmissions">^1</a>. Identifying patients at high risk of readmission at the time of discharge allows clinicians to potentially reduce patient burden and hosptial costs.</p>
+<h2 id="Introduction">Introduction<a class="anchor-link" href="#Introduction">¶</a></h2><p>Hospital readmission rates are often utilized as a measure of care quality and patient outcomes. The Center for Medicare and Medicaid services (CMS) has penalized hospitals for excess readmission rates since 2012 under the Hospital Readmissions Reduction Program <a href="https://www.cms.gov/medicare/quality/value-based-programs/hospital-readmissions">^1</a>. Identifying patients at high risk of readmission at the time of discharge allows clinicians to potentially reduce patient burden and hospital costs.</p>
 <p>This project uses the MIMIC-IV Clinical Database Demo, a publicly available de-identified dataset containing clinical records from patients admitted to Beth Israel Deaconess Medical Center in Boston, Massachusetts. This demo dataset contains records for approximately 100 patients across multiple relational tables covering hospital admissions, ICU stays, laboratory results, diagnoses, and more.</p>
-<p>The primary goal of this project is to build a logistic regression model predicting whether a patient will be readmitted in 30 days using features derived from demographics, admission characteristics, and ICU utilization. A second goal is to demonstrate a reproducible clinical data pipeline: raw relational data extracted using SQL, processed in Python, and analyzed using standard regression methods.</p>
+<p>The primary goal of this project is to build a logistic regression model predicting whether a patient will be readmitted in 30 days using features derived from demographics, admission characteristics, and ICU utilization. A second goal is to demonstrate a reproducible clinical data pipeline: raw relational data extracted using SQL, processed in Python, and analyzed using binary logistic regression.</p>
 <p>The analysis proceeds as follows: exploratory data analysis characterizes the patient cohort and admission patterns; feature engineering constructs the target variable and predictors from multiple joined tables; a logistic regression model is then fit and evaluated using area under the ROC curve (AUC) as the primary performance metric.</p>
 </div>
 </div>
@@ -7511,15 +7511,28 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ece61665">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=caeceb2b">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>We begin exporatory data analysis by loading the MIMIC-IV demo dataset into a SQLite database, enabling SQL-based queries using Python. The dataset consists of many relational tables organized into hosp (hosp_) and icu (icu_) folders, each linked by common patient and admission identifiers (subject_id, hadm_id, stay_id).</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ece61665">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%capture</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">sqlite3</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -7550,20 +7563,6 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>C:\Users\flami\AppData\Local\Temp\ipykernel_9396\2723046639.py:25: DtypeWarning: Columns (0: administration_type, 1: barcode_type, 2: reason_for_no_barcode, 3: complete_dose_not_given, 4: dose_due, 5: dose_due_unit, 6: dose_given, 7: dose_given_unit, 8: will_remainder_of_dose_be_given, 9: product_unit, 10: product_code, 11: product_description, 12: product_description_other, 13: infusion_rate_adjustment, 14: infusion_rate_unit, 15: route, 16: infusion_complete, 17: completion_interval, 18: new_iv_bag_hung, 19: continued_infusion_in_other_location, 20: restart_interval, 21: side, 22: site, 23: non_formulary_visual_verification) have mixed types. Specify dtype option on import or set low_memory=False.
-  df = pd.read_csv(filepath)
-</pre>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=839e0a5e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -7571,79 +7570,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Here, the tables are previewed, with the schema and top entries shown for the important tables.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5f6a4039">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># preview tables</span>
-<span class="n">tables</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="s2">"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th>name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>0</th>
-<td>demo_subject_id</td>
-</tr>
-<tr>
-<th>1</th>
-<td>dur_by_type</td>
-</tr>
-<tr>
-<th>2</th>
-<td>hosp_admissions</td>
-</tr>
-<tr>
-<th>3</th>
-<td>hosp_d_hcpcs</td>
-</tr>
-<tr>
-<th>4</th>
-<td>hosp_d_icd_diagnoses</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p>The four key tables for this analysis are previewed along with their schema. hosp_patients includes demographic information such as gender and anchor age, MIMIC-IV's de-identified age feature. hosp_admissions contains admission and discharge timestamps, admission type, and race, serving as the primary table for linking patient stays. hosp_labevents contains laboratory measurements taken during admissions, which contains a lot of missing entries. icu_icustays records ICU-specific stay information including care unit type and duration, with no missing values in the key columns.</p>
 </div>
 </div>
 </div>
@@ -7652,7 +7579,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># get schema and preview a table</span>
@@ -7660,6 +7587,7 @@ a.anchor-link {
 <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"hosp_patients"</span><span class="p">,</span> <span class="s2">"hosp_admissions"</span><span class="p">,</span> <span class="s2">"hosp_labevents"</span><span class="p">,</span> <span class="s2">"icu_icustays"</span><span class="p">):</span>
 
     <span class="n">schema</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"PRAGMA table_info(</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Schema for </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
 
@@ -7679,7 +7607,8 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Schema for hosp_patients:
+<pre>hosp_patients
+Schema for hosp_patients:
    cid               name     type  notnull dflt_value  pk
 0    0         subject_id  INTEGER        0       None   0
 1    1             gender     TEXT        0       None   0
@@ -7696,6 +7625,7 @@ Preview for hosp_patients:
 4    10027445      F          48         2142       2011 - 2013  2146-02-09
 
 
+hosp_admissions
 Schema for hosp_admissions:
     cid                  name     type  notnull dflt_value  pk
 0     0            subject_id  INTEGER        0       None   0
@@ -7751,6 +7681,7 @@ Preview for hosp_admissions:
 4                  NaN                     0  
 
 
+hosp_labevents
 Schema for hosp_labevents:
     cid               name     type  notnull dflt_value  pk
 0     0        labevent_id  INTEGER        0       None   0
@@ -7792,6 +7723,7 @@ Preview for hosp_labevents:
 4             32.0             37.0  abnormal  ROUTINE     None  
 
 
+icu_icustays
 Schema for icu_icustays:
    cid            name     type  notnull dflt_value  pk
 0    0      subject_id  INTEGER        0       None   0
@@ -7837,7 +7769,7 @@ Preview for icu_icustays:
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>We check for missing and distinct values in the set of important tables. While there are missing values for some of the variables in a few tables, no variable with missing values will be used in our regression model so we choose not to remedy them. Having 100 distinct values for each table means that we have 100 unique patient entries among the raw data.</p>
+<p>We check for missing and distinct values in the set of important tables. While there are missing values for some of the variables in a few tables, most notably in hosp_labevents (where order_provider_id, flag, and comments are largely missing) and hosp_admissions (where deathtime is missing for surviving patients). No variable with missing values will be used in our regression model so no imputation was performed. Each table contains records for 100 unique patients, which is consistent with the MIMIC-IV demo's stated patient count.</p>
 </div>
 </div>
 </div>
@@ -7846,13 +7778,15 @@ Preview for icu_icustays:
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"hosp_patients"</span><span class="p">,</span> <span class="s2">"hosp_admissions"</span><span class="p">,</span> <span class="s2">"hosp_labevents"</span><span class="p">,</span> <span class="s2">"icu_icustays"</span><span class="p">):</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SELECT * FROM </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> Missing Values:"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">missing</span><span class="p">[</span><span class="n">missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7866,39 +7800,46 @@ Preview for icu_icustays:
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>hosp_patients Missing Values:
-subject_id            0
-gender                0
-anchor_age            0
-anchor_year           0
-anchor_year_group     0
-dod                  69
-dtype: int64
-hosp_admissions Missing Values:
-subject_id                0
-hadm_id                   0
-admittime                 0
-dischtime                 0
-deathtime               260
-admission_type            0
-admit_provider_id         0
-admission_location        0
-discharge_location       42
-insurance                 0
-language                  0
-marital_status           12
-race                      0
-edregtime                93
-edouttime                93
-hospital_expire_flag      0
-dtype: int64
-hosp_labevents Missing Values:
-labevent_id              0
-subject_id               0
-hadm_id              28420
-specimen_id              0
-itemid                   0
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>dod    69
+dtype: int64</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>hosp_admissions Missing Values:
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>deathtime             260
+discharge_location     42
+marital_status         12
+edregtime              93
+edouttime              93
+dtype: int64</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>hosp_labevents Missing Values:
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>hadm_id              28420
 order_provider_id    90897
-charttime                0
 storetime              992
 value                 9588
 valuenum             12481
@@ -7908,18 +7849,20 @@ ref_range_upper      18728
 flag                 67452
 priority              9329
 comments             89273
-dtype: int64
-icu_icustays Missing Values:
-subject_id        0
-hadm_id           0
-stay_id           0
-first_careunit    0
-last_careunit     0
-intime            0
-outtime           0
-los               0
-dtype: int64
+dtype: int64</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>icu_icustays Missing Values:
 </pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Series([], dtype: int64)</pre>
 </div>
 </div>
 </div>
@@ -7929,7 +7872,7 @@ dtype: int64
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"hosp_patients"</span><span class="p">,</span> <span class="s2">"hosp_admissions"</span><span class="p">,</span> <span class="s2">"hosp_labevents"</span><span class="p">,</span> <span class="s2">"icu_icustays"</span><span class="p">):</span>
@@ -7973,8 +7916,8 @@ icu_icustays DISTINCT Values:
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>MIMIC-IV de-identifies patients, meaning rather than an exact age, we're given an anchor age. An anchor age is the age of a patient taken within a three year window. While this introduces uncertainty if we use age as a predictor, older anchor ages still refer to older patients and are associated with a higher baseline risk.</p>
-<p>We can see that most patients lie within the 45-90 age range, with the 65-70 age group being larger and below 45 groups being smaller.</p>
-<p>Most of patient stays last around 6 days or less, with a sharp decline in the number of patients experiencing stays of higher duration.</p>
+<p>We can see that the patient cohort skews older, with most patients in the 45-90 age range and a notably higher concentration in 65-70 age group. This is consistent with the demographic typically at risk for serious conditions that require hospitalization.</p>
+<p>The distribution of hospital length of stay is heavily skewed right, with most stays lasting fewer than 10 days but a long tail extending to over 40 days, reflecting a small number of complex, prolonged admissions.</p>
 </div>
 </div>
 </div>
@@ -7983,7 +7926,7 @@ icu_icustays DISTINCT Values:
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># age distribution for hosp patients</span>
@@ -8044,7 +7987,7 @@ icu_icustays DISTINCT Values:
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Most admissions were emergency ward emergencies, with the average stay duration of emergency ward admissions being around 7 days.</p>
+<p>Emergency Ward Emergency (EW EMER.) admissions dominate the cohort with 104 admissions. Despite being the most frequent admission type, EW EMER. admissions have a moderate average stay duration of approximately 7 days, while Urgent and Direct Emergency admissions show the longest average stays. This suggests that these patients may present with more complex acute conditions requiring extended care.</p>
 </div>
 </div>
 </div>
@@ -8053,7 +7996,7 @@ icu_icustays DISTINCT Values:
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># dist of admission types</span>
@@ -8174,12 +8117,24 @@ icu_icustays DISTINCT Values:
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7d7cafbe">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Feature-Engineering">Feature Engineering<a class="anchor-link" href="#Feature-Engineering">¶</a></h1>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=abb5fe63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The analytical dataset is constructed in two steps. Firstly, the 30-day readmission target variable is derived by self-joining hosp_admissions to identify the earliest readmission for each patient. An admission is labeled as readmitted (1) if the next admission ocurred within 30 days of discharge, and not readmitted (0) otherwise. This common-table-expression-based approach handles the time-ordering logic entirely within SQL before any data is pulled into Python.</p>
 </div>
 </div>
 </div>
@@ -8188,7 +8143,7 @@ icu_icustays DISTINCT Values:
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">readmissions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="s2">"""</span>
@@ -8298,24 +8253,47 @@ icu_icustays DISTINCT Values:
 </div>
 </div>
 </div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cfaaaa55">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The readmissions table above shows the first five rows of the target variable construction. Patient 10000032 had four admissions — two flagged as readmitted (next admission within 30 days) and two not. The next_admittime is NaN for their final admission, correctly receiving a value of 0 since no subsequent admission exists to evaluate.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5bb31be1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Patient level features are extracted by joining hosp_admissions with hosp_patients (patient demographics) and icu_icustays (ICU utilization). A LEFT JOIN on icu_icustays ensures all admissions are retained. Patients without an ICU stay receive had_icu_stay = 0 and icu_los_days = 0 via COALESCE, rather than NULL values that would be dropped during modeling. The readmissions and features dataframes are then joined on hadm_id to create the final analytical dataset.</p>
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=708ad014">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># select features for model</span>
 <span class="n">features_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT a.hadm_id, p.gender, p.anchor_age, a.admission_type, a.race,</span>
-<span class="s2">    julianday(a.dischtime)-julianday(a.admittime) as los_days,</span>
+<span class="s2">    julianday(a.dischtime)-julianday(a.admittime) as los_days, </span>
 <span class="s2">    CASE WHEN i.stay_id IS NOT NULL THEN 1 ELSE 0 END AS had_icu_stay,</span>
 <span class="s2">    COALESCE(JULIANDAY(i.outtime) - JULIANDAY(i.intime), 0) AS icu_los_days</span>
 <span class="s2">    FROM hosp_admissions a</span>
 <span class="s2">    JOIN hosp_patients p ON a.subject_id = p.subject_id</span>
 <span class="s2">    LEFT JOIN icu_icustays i ON a.hadm_id = i.hadm_id</span>
 <span class="s2">"""</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+<span class="c1"># los = length of stay</span>
 
 <span class="c1"># final df</span>
 <span class="n">final_df</span> <span class="o">=</span> <span class="n">readmissions</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">features_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">'hadm_id'</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">'left'</span><span class="p">)</span>
@@ -8324,20 +8302,43 @@ icu_icustays DISTINCT Values:
 </div>
 </div>
 </div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6bc678c6">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Data-Preparation">Data Preparation<a class="anchor-link" href="#Data-Preparation">¶</a></h1>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5ff3fe84">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The class distribution shows a substantial imbalance: 232 admissions (81%) were not readmitted within 30 days, while 55 (19%) were. This reflects the real-world readmission rate and is common in clinical prediction tasks. To address this imbalance, logistic regression is fit with class_weight='balanced', which adjusts the loss function to penalize misclassification of the minority class (readmissions) more heavily.</p>
+<p>Categorical variables (gender, admission type, and race) are encoded as integers using LabelEncoder prior to model fitting, since logistic regression requires numeric inputs. The dataset is then split into training (80%) and test (20%) sets using a fixed random seed for reproducibility.</p>
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c934832e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelEncoder</span>
 <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
 
 <span class="c1"># check class counts</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">final_df</span><span class="p">[</span><span class="s1">'readmitted_30_day'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">final_df</span><span class="p">[</span><span class="s1">'readmitted_30_day'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">display</span><span class="p">(</span><span class="n">final_df</span><span class="p">[</span><span class="s1">'readmitted_30_day'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+<span class="n">display</span><span class="p">(</span><span class="n">final_df</span><span class="p">[</span><span class="s1">'readmitted_30_day'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
 <span class="c1"># encode categorical variables</span>
 <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'gender'</span><span class="p">,</span> <span class="s1">'admission_type'</span><span class="p">,</span> <span class="s1">'race'</span><span class="p">]:</span>
@@ -8364,13 +8365,39 @@ icu_icustays DISTINCT Values:
 <pre>readmitted_30_day
 0    232
 1     55
-Name: count, dtype: int64
-readmitted_30_day
+Name: count, dtype: int64</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>readmitted_30_day
 0    0.808362
 1    0.191638
-Name: proportion, dtype: float64
-</pre>
+Name: proportion, dtype: float64</pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4adff709">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Modeling">Modeling<a class="anchor-link" href="#Modeling">¶</a></h1>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=afd560c4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>A logistic regression model is fit on the training set using the balanced class weighting described above. Logistic regression is appropriate here given the binary outcome (readmitted vs. not), the relatively small dataset size, and the primary goal of interpretability. Coefficient-based odds ratios allow direct interpretation of each feature's relationship with readmission risk.</p>
 </div>
 </div>
 </div>
@@ -8379,7 +8406,7 @@ Name: proportion, dtype: float64
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
@@ -8438,6 +8465,31 @@ weighted avg       0.69      0.60      0.64        58
 1          gender    -0.956337    0.384298
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11a50ed8">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The model achieved an AUC of 0.462, which is below the 0.5 random baseline. This indicates that the model as specified does not meaningfully discriminate between readmitted and non-readmitted patients in this test set. This result is not unexpected given the small sample size (287 total admissions, 55 positive cases), the limited feature set, and the use of the demo dataset rather than the full MIMIC-IV cohort. The coefficient table shows ICU stay and longer length of stay are associated with slightly higher readmission odds. Female gender shows a large protetive coefficient, which is most likely due to encoding artifacts rather than a true clinical effect, and warrants caution when interpreting.</p>
+<p>Despite the weak discriminative performance, this analysis demonstrates the end-to-end clinical data pipeline: multi-table SQL extraction, feature engineering via CTE-based self-joins, and Python-based modeling.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4e364e8e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Discussion-and-Limitations">Discussion and Limitations<a class="anchor-link" href="#Discussion-and-Limitations">¶</a></h1><p>Several limitations should be acknowledged. The MIMIC-IV demo dataset contains only 100 patients and approximately 287 admissions, which is much too small to build a reliable 30-day readmission prediction model. The full MIMIC-IV dataset contains over 300,000 patients and would be more suitable for this goal.</p>
+<p>The feature set is intentionally minimal and omits potentially stronger predictors such as diagnosis codes, laboratory values, and medication histories. Additionally, LabelEncoder assigns arbitrary integers to nominal categorical variables like race and admission type, which may introduce artificial ordinal relationships that could distort model coefficients. One-hot encoding would be more appropriate in future renditions of this project.</p>
+<p>Future work could apply this pipeline to the full MIMIC-IV cohort, incorporate diagnosis codes and lab features, use one-hot encoding for categoricals, and explore regularized models (LASSO logistic regression) or tree-based methods that better handle class imbalance and non-linear relationships.</p>
 </div>
 </div>
 </div>
